@@ -93,10 +93,11 @@
 #define IDR_RIBBON                      307
 #define IDI_ICONAPP                     310
 #define IDB_BITSTART                    315
-#define IDB_BITSTOP                     316
+#define IDB_BITSTOP                     317
 #define IDC_BUTTON1                     1000
 #define IDC_PIC1                        1001
 #define IDC_VIDEO1                      1001
+#define IDC_BUTTON6                     1003
 #define IDC_PIC2                        1005
 #define IDC_VIDEO2                      1005
 #define IDC_BUTTON2                     1006

@@ -43,6 +43,7 @@ BEGIN_MESSAGE_MAP(CCooView, CFormView)
 	ON_WM_SIZE()
 	ON_WM_TIMER()
 	ON_BN_CLICKED(IDC_BUTTON2, &CCooView::OnBnClickedButton2)
+	ON_BN_CLICKED(IDC_BUTTON6, &CCooView::OnBnClickedButton6)
 END_MESSAGE_MAP()
 
 // CCooView 构造/析构
@@ -51,7 +52,8 @@ CCooView::CCooView() noexcept
 	: CFormView(IDD_COO_FORM)
 {
 	// TODO: 在此处添加构造代码
-	m_start = FALSE;
+	m_start1 = TRUE;
+	m_start2 = TRUE;
 
 }
 
@@ -62,7 +64,8 @@ CCooView::~CCooView()
 void CCooView::DoDataExchange(CDataExchange* pDX)
 {
 	CFormView::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_BUTTON2, m_startorstop);
+	DDX_Control(pDX, IDC_BUTTON2, m_startorstop2);
+	DDX_Control(pDX, IDC_BUTTON6, m_startorstop1);
 }
 
 BOOL CCooView::PreCreateWindow(CREATESTRUCT& cs)
@@ -79,8 +82,11 @@ void CCooView::OnInitialUpdate()
 	GetParentFrame()->RecalcLayout();
 	ResizeParentToFit();
 
-	m_startorstop.LoadBitmaps(IDB_BITSTART);
-	m_startorstop.SizeToContent();    //调整按钮大小为图片大小
+	m_startorstop1.LoadBitmaps(IDB_BITSTART);
+	m_startorstop1.SizeToContent();    //调整按钮大小为图片大小
+	
+	m_startorstop2.LoadBitmaps(IDB_BITSTART);
+	m_startorstop2.SizeToContent();    //调整按钮大小为图片大小
 	
 	//
 	CWnd* pWnd1 = GetDlgItem(IDC_VIDEO1);
@@ -192,10 +198,10 @@ void CCooView::OnBnClickedButton1()
 		std::string VideoPath(W2A(StrPath1));
 		cap1.open(VideoPath);
 
-		if (cap1.isOpened())
-			SetTimer(1, 30, nullptr);
-		else
-			MessageBox(_T("打开视频失败！"));
+		// if (cap1.isOpened())
+		// 	SetTimer(1, 30, nullptr);
+		// else
+		// 	MessageBox(_T("打开视频失败！"));
 	}
 	
 }
@@ -240,15 +246,15 @@ void CCooView::OnTimer(UINT_PTR nIDEvent)
 	CFormView::OnTimer(nIDEvent);
 }
 
-
+// VIDEO2的播放控制按钮
 void CCooView::OnBnClickedButton2()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	if (m_start)
+	if (m_start2)
 	{
-		m_startorstop.LoadBitmaps(IDB_BITSTOP); 
-		m_startorstop.SizeToContent();
-		m_start = FALSE;
+		m_startorstop2.LoadBitmaps(IDB_BITSTOP); 
+		m_startorstop2.SizeToContent();
+		m_start2 = FALSE;
 		if (cap2.isOpened())
 			SetTimer(2, 20, nullptr);
 		else
@@ -256,9 +262,32 @@ void CCooView::OnBnClickedButton2()
 	}
 	else
 	{
-		m_startorstop.LoadBitmaps(IDB_BITSTART);
-		m_startorstop.SizeToContent();
-		m_start = TRUE;
+		m_startorstop2.LoadBitmaps(IDB_BITSTART);
+		m_startorstop2.SizeToContent();
+		m_start2 = TRUE;
 		KillTimer(2);
+	}
+}
+
+// VIDEO1的播放控制按钮
+void CCooView::OnBnClickedButton6()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	if (m_start1)
+	{
+		m_startorstop1.LoadBitmaps(IDB_BITSTOP);
+		m_startorstop1.SizeToContent();
+		m_start1 = FALSE;
+		if (cap1.isOpened())
+			SetTimer(1, 20, nullptr);
+		else
+			MessageBox(_T("打开视频失败！"));
+	}
+	else
+	{
+		m_startorstop1.LoadBitmaps(IDB_BITSTART);
+		m_startorstop1.SizeToContent();
+		m_start1 = TRUE;
+		KillTimer(1);
 	}
 }

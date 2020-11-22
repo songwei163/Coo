@@ -78,11 +78,15 @@ private:
 public:
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
 private:
-	BOOL m_start;
+	BOOL m_start1;
+	BOOL m_start2;
 public:
 	afx_msg void OnBnClickedButton2();
 private:
-	CBitmapButton m_startorstop;
+	CBitmapButton m_startorstop1;
+	CBitmapButton m_startorstop2;
+public:
+	afx_msg void OnBnClickedButton6();
 };
 
 #ifndef _DEBUG  // CooView.cpp 中的调试版本

@@ -221,6 +221,7 @@
     <ResourceCompile Include="Coo.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="res\bitmap2.bmp" />
     <Image Include="res\buttons.bmp" />
     <Image Include="res\classview.bmp" />
     <Image Include="res\classview_hc.bmp" />
@@ -247,11 +248,15 @@
     <Image Include="res\properties_wnd_hc.ico" />
     <Image Include="res\sort.bmp" />
     <Image Include="res\sort_hc.bmp" />
+    <Image Include="res\start.bmp" />
+    <Image Include="res\stop.bmp" />
     <Image Include="res\Toolbar.bmp" />
     <Image Include="res\Toolbar256.bmp" />
     <Image Include="res\toolbox.ico" />
     <Image Include="res\writelarge.bmp" />
     <Image Include="res\writesmall.bmp" />
+    <Image Include="res\播放.bmp" />
+    <Image Include="res\暂停.bmp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="res\Coo.rc2" />

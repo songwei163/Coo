@@ -63,11 +63,26 @@ protected:
 	afx_msg void OnRButtonUp(UINT nFlags, CPoint point);
 	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
 	DECLARE_MESSAGE_MAP()
-private:
-	CRect rect1;
 public:
 	afx_msg void OnBnClickedButton1();
 	afx_msg void OnSize(UINT nType, int cx, int cy);
+private:
+	VideoCapture cap1;
+	Mat frame1;
+	CRect rect1;
+	CString StrPath1;
+
+	VideoCapture cap2;
+	Mat frame2;
+	CRect rect2;
+public:
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
+private:
+	BOOL m_start;
+public:
+	afx_msg void OnBnClickedButton2();
+private:
+	CBitmapButton m_startorstop;
 };
 
 #ifndef _DEBUG  // CooView.cpp 中的调试版本

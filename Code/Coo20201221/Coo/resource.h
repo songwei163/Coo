@@ -92,6 +92,7 @@
 #define IDS_EDIT_MENU                   306
 #define IDR_RIBBON                      307
 #define IDD_VIDEOLOAD                   310
+#define IDI_ICON1                       312
 #define IDC_CAM1                        1000
 #define IDC_CAM2                        1001
 #define IDC_VIDEOLOAD1                  1001
@@ -112,7 +113,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        312
+#define _APS_NEXT_RESOURCE_VALUE        313
 #define _APS_NEXT_COMMAND_VALUE         32776
 #define _APS_NEXT_CONTROL_VALUE         1006
 #define _APS_NEXT_SYMED_VALUE           311

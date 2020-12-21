@@ -134,39 +134,32 @@ void CClassView::OnSize(UINT nType, int cx, int cy)
 
 void CClassView::FillClassView()
 {
-	HTREEITEM hRoot = m_wndClassView.InsertItem(_T("FakeApp 类"), 0, 0);
+	HTREEITEM hRoot = m_wndClassView.InsertItem(_T("Cameras "), 0, 0);
 	m_wndClassView.SetItemState(hRoot, TVIS_BOLD, TVIS_BOLD);
 
-	HTREEITEM hClass = m_wndClassView.InsertItem(_T("CFakeAboutDlg"), 1, 1, hRoot);
-	m_wndClassView.InsertItem(_T("CFakeAboutDlg()"), 3, 3, hClass);
-
+	HTREEITEM hClass = m_wndClassView.InsertItem(_T("Camera Left"), 1, 1, hRoot);
+	HTREEITEM hChild = m_wndClassView.InsertItem(_T("Width"), 3, 3, hClass);
+	m_wndClassView.InsertItem(_T("640"), 4, 4, hChild);
+	m_wndClassView.Expand(hChild, TVE_EXPAND);
+	hChild = m_wndClassView.InsertItem(_T("height"), 3, 3, hClass);
+	m_wndClassView.InsertItem(_T("480"), 4, 4, hChild);
+	m_wndClassView.Expand(hChild, TVE_EXPAND);
+	hChild = m_wndClassView.InsertItem(_T("FPS"), 3, 3, hClass);
+	m_wndClassView.InsertItem(_T("30"), 4, 4, hChild);
+	m_wndClassView.Expand(hChild, TVE_EXPAND);
 	m_wndClassView.Expand(hRoot, TVE_EXPAND);
-
-	hClass = m_wndClassView.InsertItem(_T("CFakeApp"), 1, 1, hRoot);
-	m_wndClassView.InsertItem(_T("CFakeApp()"), 3, 3, hClass);
-	m_wndClassView.InsertItem(_T("InitInstance()"), 3, 3, hClass);
-	m_wndClassView.InsertItem(_T("OnAppAbout()"), 3, 3, hClass);
-
-	hClass = m_wndClassView.InsertItem(_T("CFakeAppDoc"), 1, 1, hRoot);
-	m_wndClassView.InsertItem(_T("CFakeAppDoc()"), 4, 4, hClass);
-	m_wndClassView.InsertItem(_T("~CFakeAppDoc()"), 3, 3, hClass);
-	m_wndClassView.InsertItem(_T("OnNewDocument()"), 3, 3, hClass);
-
-	hClass = m_wndClassView.InsertItem(_T("CFakeAppView"), 1, 1, hRoot);
-	m_wndClassView.InsertItem(_T("CFakeAppView()"), 4, 4, hClass);
-	m_wndClassView.InsertItem(_T("~CFakeAppView()"), 3, 3, hClass);
-	m_wndClassView.InsertItem(_T("GetDocument()"), 3, 3, hClass);
 	m_wndClassView.Expand(hClass, TVE_EXPAND);
 
-	hClass = m_wndClassView.InsertItem(_T("CFakeAppFrame"), 1, 1, hRoot);
-	m_wndClassView.InsertItem(_T("CFakeAppFrame()"), 3, 3, hClass);
-	m_wndClassView.InsertItem(_T("~CFakeAppFrame()"), 3, 3, hClass);
-	m_wndClassView.InsertItem(_T("m_wndMenuBar"), 6, 6, hClass);
-	m_wndClassView.InsertItem(_T("m_wndToolBar"), 6, 6, hClass);
-	m_wndClassView.InsertItem(_T("m_wndStatusBar"), 6, 6, hClass);
-
-	hClass = m_wndClassView.InsertItem(_T("Globals"), 2, 2, hRoot);
-	m_wndClassView.InsertItem(_T("theFakeApp"), 5, 5, hClass);
+	hClass = m_wndClassView.InsertItem(_T("Camera Right"), 1, 1, hRoot);
+	hChild = m_wndClassView.InsertItem(_T("Width"), 3, 3, hClass);
+	m_wndClassView.InsertItem(_T("640"), 4, 4, hChild);
+	m_wndClassView.Expand(hChild, TVE_EXPAND);
+	hChild = m_wndClassView.InsertItem(_T("height"), 3, 3, hClass);
+	m_wndClassView.InsertItem(_T("480"), 4, 4, hChild);
+	m_wndClassView.Expand(hChild, TVE_EXPAND);
+	hChild = m_wndClassView.InsertItem(_T("FPS"), 3, 3, hClass);
+	m_wndClassView.InsertItem(_T("30"), 4, 4, hChild);
+	m_wndClassView.Expand(hChild, TVE_EXPAND);
 	m_wndClassView.Expand(hClass, TVE_EXPAND);
 }
 

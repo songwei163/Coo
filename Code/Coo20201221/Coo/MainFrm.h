@@ -46,11 +46,11 @@ public:
 protected:  // 控件条嵌入成员
 	CMFCRibbonBar     m_wndRibbonBar;
 	CMFCRibbonApplicationButton m_MainButton;
-	CMFCToolBarImages m_PanelImages;
-	CMFCRibbonStatusBar  m_wndStatusBar;
+	//CMFCToolBarImages m_PanelImages;
+	//CMFCRibbonStatusBar  m_wndStatusBar;
 	CFileView         m_wndFileView;
 	CClassView        m_wndClassView;
-	CPropertiesWnd    m_wndProperties;
+	//CPropertiesWnd    m_wndProperties;
 public:
 	COutputWnd        m_wndOutput;
 
@@ -67,6 +67,7 @@ protected:
 
 	BOOL CreateDockingWindows();
 	void SetDockingWindowIcons(BOOL bHiColorIcons);
+//	virtual void OnUpdateFrameTitle(BOOL bAddToTitle);
 };
 
 

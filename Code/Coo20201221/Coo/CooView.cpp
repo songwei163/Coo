@@ -254,10 +254,10 @@ void CCooView::OnBtvideoprocess()
 	CMainFrame* p_Main = (CMainFrame*)AfxGetApp()->m_pMainWnd;
 	if (strVideoPath1.IsEmpty() || strVideoPath2.IsEmpty())
 	{
-		MessageBox(_T("文件打开失败，程序退出"),_T("错误"), MB_ICONERROR);
+		MessageBox(_T("文件打开失败"),_T("错误"), MB_ICONERROR);
 		exit(EXIT_FAILURE);
 	}
-	d.CalcHMatrix(CStringToString(strVideoPath1), CStringToString(strVideoPath2));
+	d.CalcHMatrix(CStringToString(strVideoPath2), CStringToString(strVideoPath1));
 	d.VideoStitch();
 }
 

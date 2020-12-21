@@ -417,18 +417,15 @@ void CamVideoStitch::CameraStitch()
 
 void CamVideoStitch::VideoStitch()
 {
+#if TRACK
     // 追踪模块
     Ptr<Tracker> tracker;
-    char key;
+
     tracker = TrackerCSRT::create();
     Rect2d initBB;
+#endif
 
-
-    if (m_fileNameR.empty() || m_fileNameL.empty())
-    {
-        cout << "载入有效的视频文件路径！！！" << endl;
-        exit(EXIT_FAILURE);
-    }
+    char key;
     VideoCapture cap1(m_fileNameR);
     VideoCapture cap2(m_fileNameL);
     cout << cap1.get(CAP_PROP_FRAME_WIDTH) << endl;
@@ -437,7 +434,8 @@ void CamVideoStitch::VideoStitch()
 
     if (!cap1.isOpened() || !cap2.isOpened())
     {
-        cout << "视频文件打开失败！！！" << endl;
+        cout << "摄像头打开失败！！！" << endl;
+        cout << __LINE__ << endl;
         exit(EXIT_FAILURE);
     }
 
@@ -456,8 +454,8 @@ void CamVideoStitch::VideoStitch()
     cv::namedWindow("Camera FPS");
     double t = 0;
     int count = 0;
-    Mat result11;
     Mat temp;
+    bool flag;
     while (key = waitKey(20))
     {
         t = (double)cv::getTickCount();
@@ -471,7 +469,27 @@ void CamVideoStitch::VideoStitch()
 #endif
 
         count++;
+        // 每次图像融合后会重绘重叠区域ROI，后续运动检测只在重叠区域做，因为非重叠区域不需要更新模板，即减少工作量
         result = ImageMix(videoImage1, videoImage2);
+        if (count == 1)
+        {
+            flag = MoveDetect(ResultROI, ResultROI);
+        }
+        else
+        {
+            flag = MoveDetect(temp, ResultROI);
+        }
+        temp = ResultROI.clone();
+
+        if (flag)
+        {
+            // 计算H矩阵
+            FindHMatrix(videoImage1, videoImage2);
+            cout << "单应矩阵计算成功" << endl;
+
+            //计算四个角的坐标
+            CalcFourCorner(videoImage1);
+        }
 
 #if TRACK
         if (key == 's')
@@ -493,13 +511,14 @@ void CamVideoStitch::VideoStitch()
         if (tracker->update(result, initBB))
         {
             rectangle(result, initBB, Scalar(0, 255, 0), 2);
-        }
+    }
         else
         {
             putText(result, "Tracking failure detected", Point(100, 80), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(0, 0, 255), 2);
         }
 #endif
 
+#if WRITE_FPS
         t = ((double)cv::getTickCount() - t) / cv::getTickFrequency();
         fps = 1.0 / t;
         sprintf_s(string, "%.2f", fps);
@@ -507,17 +526,15 @@ void CamVideoStitch::VideoStitch()
         fpsString += string;
         // 将帧率信息写在输出帧上
         putText(result, fpsString, cv::Point(2, 50), cv::FONT_HERSHEY_DUPLEX, 2, cv::Scalar(0, 255, 0), 2, 8);
+#endif
+
         imshow("Camera FPS", result);
 
 #if WRITE_VIDEO
         writerResult << result11;
 #endif
 
-        if (result.empty())
-        {
-            break;
-        }
-    }
+}
 
     cout << "Success" << endl;
 }

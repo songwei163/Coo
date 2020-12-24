@@ -1,5 +1,9 @@
 #include "CamVideoStitch.h"
 
+CamVideoStitch::CamVideoStitch()
+{
+}
+
 void CamVideoStitch::CalcHMatrix()
 {
     // 开启摄像头
@@ -41,7 +45,7 @@ void CamVideoStitch::CalcHMatrix()
     destroyWindow("Camera Video 2");
 
     // 计算H矩阵
-    H = FindHMatrix(videoImage1, videoImage2);
+    FindHMatrix(videoImage1, videoImage2);
     cout << "单应矩阵计算成功" << endl;
 
     //计算四个角的坐标
@@ -113,26 +117,24 @@ void CamVideoStitch::CalcHMatrix(const String fileNameR, const String fileNameL)
 
 Mat CamVideoStitch::FindHMatrix(Mat image1, Mat image2)
 {
-    Mat H;
-    Mat gray_image1, gray_image2;
-    vector<KeyPoint> keypoints_object, keypoints_scene;
-    Mat descriptors_object, descriptors_scene;
-    vector< Point2f > obj;
-    vector< Point2f > scene;
+    if (image1.empty() || image2.empty())
+    {
+        cout << "图像为空" << endl;
+        exit(-1);
+    }
 
-
-    cvtColor(image1, gray_image1, CV_RGB2GRAY);
-    cvtColor(image2, gray_image2, CV_RGB2GRAY);
+    cvtColor(image1, gray_image1, COLOR_RGB2GRAY);
+    cvtColor(image2, gray_image2, COLOR_RGB2GRAY);
 
     int minHessian = 400;
     Ptr<xfeatures2d::SURF> surf = xfeatures2d::SURF::create(minHessian);
 
-    surf->detectAndCompute(gray_image1, Mat(), keypoints_object, descriptors_object);
-    surf->detectAndCompute(gray_image2, Mat(), keypoints_scene, descriptors_scene);
-
+    surf->detect(gray_image1, keypoints_object);
+    surf->detect(gray_image2, keypoints_scene);
+    surf->compute(gray_image1, keypoints_object, descriptors_object);
+    surf->compute(gray_image2, keypoints_scene, descriptors_scene);
 
     FlannBasedMatcher matcher;
-    vector< DMatch > matches;
     matcher.match(descriptors_object, descriptors_scene, matches);
     double max_dist = 0;
     double min_dist = 100;
@@ -145,7 +147,7 @@ Mat CamVideoStitch::FindHMatrix(Mat image1, Mat image2)
     }
 
     //-- Use only "good" matches (i.e. whose distance is less than 3*min_dist )
-    vector< DMatch > good_matches;
+
     for (int i = 0; i < descriptors_object.rows; i++)
     {
         if (matches[i].distance < 3 * min_dist)
@@ -161,9 +163,24 @@ Mat CamVideoStitch::FindHMatrix(Mat image1, Mat image2)
         scene.push_back(keypoints_scene[good_matches[i].trainIdx].pt);
     }
 
+    Mat imgMatches;
+#if DBG
+    drawMatches(image1, keypoints_object, image2, keypoints_scene, good_matches, imgMatches, Scalar::all(-1), Scalar(0, 0, 255), Mat(), DrawMatchesFlags::DEFAULT);
+
+    imshow("匹配图", imgMatches);
+#endif
     // 计算目标映射到场景的变换矩阵
     // 即右图映射到左图的H矩阵
     H = findHomography(obj, scene, RANSAC);
+
+    {
+        keypoints_object.resize(0);
+        keypoints_scene.resize(0);
+        matches.resize(0);
+        good_matches.resize(0);
+        obj.resize(0);
+        scene.resize(0);
+    }
 
     return H;
 }
@@ -317,7 +334,6 @@ void CamVideoStitch::CameraStitch()
 
     Mat videoImage1;
     Mat videoImage2;
-    Mat result;
 
     cap1 >> videoImage1;
     cap2 >> videoImage2;
@@ -331,7 +347,25 @@ void CamVideoStitch::CameraStitch()
     double t = 0;
     int count = 0;
     Mat temp;
-    bool flag;
+    bool flag = 0;
+
+#if MOVE_DECT
+    while (key = waitKey(20)) {
+        cap1 >> videoImage1;
+        cap2 >> videoImage2;
+        ImageMix(videoImage1, videoImage2);
+        imshow("ImageMix", result);
+        if (key == 'w')
+        {
+            rectROI = selectROI("ImageMix", result, false, false);
+            break;
+        }
+    }    
+    ResultROI = result(rectROI);
+    destroyWindow("ImageMix");
+#endif
+
+
     while (key = waitKey(20))
     {
         t = (double)cv::getTickCount();
@@ -345,8 +379,21 @@ void CamVideoStitch::CameraStitch()
 #endif
 
         count++;
-        // 每次图像融合后会重绘重叠区域ROI，后续运动检测只在重叠区域做，因为非重叠区域不需要更新模板，即减少工作量
-        result = ImageMix(videoImage1, videoImage2);
+
+        if (videoImage1.empty() || videoImage2.empty()) {
+            continue;
+        }
+
+#if MOVE_DECT
+        cout << "result: rows" << result.rows << endl;
+        cout << "result: cols" << result.cols << endl;
+
+        cout << "rectROI: rows" << rectROI.height << endl;
+        cout << "rectROI: cols" << rectROI.width << endl;
+
+        cout << "Result: rows" << ResultROI.rows << endl;
+        cout << "Result: cols" << ResultROI.cols << endl;
+
         if (count == 1)
         {
             flag = MoveDetect(ResultROI, ResultROI);
@@ -366,6 +413,9 @@ void CamVideoStitch::CameraStitch()
             //计算四个角的坐标
             CalcFourCorner(videoImage1);
         }
+#endif
+
+        ImageMix(videoImage1, videoImage2);
 
 #if TRACK
         if (key == 's')
@@ -407,7 +457,7 @@ void CamVideoStitch::CameraStitch()
         imshow("Camera FPS", result);
 
 #if WRITE_VIDEO
-        writerResult << result11;
+        writerResult << result;
 #endif
 
     }
@@ -531,7 +581,7 @@ void CamVideoStitch::VideoStitch()
         imshow("Camera FPS", result);
 
 #if WRITE_VIDEO
-        writerResult << result11;
+        writerResult << result;
 #endif
 
 }
@@ -541,22 +591,20 @@ void CamVideoStitch::VideoStitch()
 
 Mat CamVideoStitch::ImageMix(Mat image1, Mat image2)
 {
-    Mat result;
-
-    int start = MIN(leftTop.x, leftBottom.x);//开始位置，即重叠区域的左边界
+    int start = fabs(MIN(leftTop.x, leftBottom.x));//开始位置，即重叠区域的左边界
     double processWidth = image2.cols - start;//重叠区域的宽度
     double alpha = 1;//img2中像素的权重
 
     // 对右图进行透视变换
-    warpPerspective(image1, result, H, cv::Size(MIN(rightTop.x, rightBottom.x), image1.rows));
-
+    //warpPerspective(image1, result, H, cv::Size(MIN(rightTop.x, rightBottom.x), image1.rows));
+    warpPerspective(image1, result, H, cv::Size(1280, 480));
 #if DBG
-    imshow("obj to scene", result);
+    imshow("Result0", result);
 #endif
 
     //  将左图拷贝到右图上去
-    Mat image2Roi(image2, cv::Rect(0, 0, MIN(leftTop.x, leftBottom.x), image2.rows));
-    Mat resultRoi(result, cv::Rect(0, 0, MIN(leftTop.x, leftBottom.x), result.rows));
+    Mat image2Roi(image2, cv::Rect(0, 0, min(fabs(leftTop.x), fabs(leftBottom.x)), image2.rows));
+    Mat resultRoi(result, cv::Rect(0, 0, min(fabs(leftTop.x), fabs(leftBottom.x)), result.rows));
     image2Roi.copyTo(resultRoi);
 
 #if DBG
@@ -583,8 +631,9 @@ Mat CamVideoStitch::ImageMix(Mat image1, Mat image2)
             resultP[j * 3 + 2] = image2P[j * 3 + 2] * alpha + resultP[j * 3 + 2] * (1 - alpha);//R通道
         }
     }
-    // 寻找重叠区域ROI，并记录在私有数据成员中，供后续运动检测使用
-    ResultROI = result(Rect(start, 0, result.rows, image2.cols - start));
+#if DBG
+    rectangle(result, Rect(min(fabs(leftTop.x), fabs(leftBottom.x)), 0, image2.cols - MAX(fabs(leftTop.x), fabs(leftBottom.x)), result.rows), Scalar(0, 0, 255), 2);
+#endif   
     return result;
 }
 
@@ -594,22 +643,19 @@ bool CamVideoStitch::MoveDetect(Mat frame1, Mat frame2)
     cvtColor(frame1, gray1, CV_BGR2GRAY);
     cvtColor(frame2, gray2, CV_BGR2GRAY);
 
-    Mat diff;
-    absdiff(gray1, gray2, diff);
+    threshold(gray1, gray1, 45, 255, CV_THRESH_BINARY);
+    threshold(gray2, gray2, 45, 255, CV_THRESH_BINARY);
 
-    threshold(diff, diff, 45, 255, CV_THRESH_BINARY);
     Mat element = getStructuringElement(MORPH_RECT, Size(3, 3));
-    Mat element2 = getStructuringElement(MORPH_RECT, Size(10, 10));
 
-    erode(diff, diff, element);
 #if DBG
-    imshow("threshold", diff);
+    imshow("gray1", gray1);
+    imshow("gray2", gray2);
 #endif
-
     CalcTwoHist(gray1, gray2);
     double matchValue = compareHist(dHist1, dHist2, HISTCMP_CORREL);  //值越大相似度越高
     cout << matchValue << endl;
-    return matchValue <= 0.9845;
+    return matchValue <= 0.99991;
 
 }
 

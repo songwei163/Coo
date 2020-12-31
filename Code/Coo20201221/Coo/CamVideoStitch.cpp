@@ -491,7 +491,6 @@ void CamVideoStitch::VideoStitch()
 
     Mat videoImage1;
     Mat videoImage2;
-    Mat result;
 
     cap1 >> videoImage1;
     cap2 >> videoImage2;
@@ -505,7 +504,25 @@ void CamVideoStitch::VideoStitch()
     double t = 0;
     int count = 0;
     Mat temp;
-    bool flag;
+    bool flag = 0;
+
+#if MOVE_DECT
+    while (key = waitKey(20)) {
+        cap1 >> videoImage1;
+        cap2 >> videoImage2;
+        ImageMix(videoImage1, videoImage2);
+        imshow("ImageMix", result);
+        if (key == 'w')
+        {
+            rectROI = selectROI("ImageMix", result, false, false);
+            break;
+        }
+    }
+    ResultROI = result(rectROI);
+    destroyWindow("ImageMix");
+#endif
+
+
     while (key = waitKey(20))
     {
         t = (double)cv::getTickCount();
@@ -519,8 +536,21 @@ void CamVideoStitch::VideoStitch()
 #endif
 
         count++;
-        // 每次图像融合后会重绘重叠区域ROI，后续运动检测只在重叠区域做，因为非重叠区域不需要更新模板，即减少工作量
-        result = ImageMix(videoImage1, videoImage2);
+
+        if (videoImage1.empty() || videoImage2.empty()) {
+            continue;
+        }
+
+#if MOVE_DECT
+        cout << "result: rows" << result.rows << endl;
+        cout << "result: cols" << result.cols << endl;
+
+        cout << "rectROI: rows" << rectROI.height << endl;
+        cout << "rectROI: cols" << rectROI.width << endl;
+
+        cout << "Result: rows" << ResultROI.rows << endl;
+        cout << "Result: cols" << ResultROI.cols << endl;
+
         if (count == 1)
         {
             flag = MoveDetect(ResultROI, ResultROI);
@@ -540,6 +570,9 @@ void CamVideoStitch::VideoStitch()
             //计算四个角的坐标
             CalcFourCorner(videoImage1);
         }
+#endif
+
+        ImageMix(videoImage1, videoImage2);
 
 #if TRACK
         if (key == 's')
@@ -561,7 +594,7 @@ void CamVideoStitch::VideoStitch()
         if (tracker->update(result, initBB))
         {
             rectangle(result, initBB, Scalar(0, 255, 0), 2);
-    }
+        }
         else
         {
             putText(result, "Tracking failure detected", Point(100, 80), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(0, 0, 255), 2);
@@ -584,9 +617,10 @@ void CamVideoStitch::VideoStitch()
         writerResult << result;
 #endif
 
-}
+    }
 
     cout << "Success" << endl;
+   
 }
 
 Mat CamVideoStitch::ImageMix(Mat image1, Mat image2)
